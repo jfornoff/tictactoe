@@ -28,11 +28,15 @@ defmodule Tictactoe.Game.State.Board do
     end
   end
 
-  defp verify_field_unused(%__MODULE__{fields: fields}, x, y) do
-    if get_in(fields, [Access.at(x), Access.at(y)]) == BoardField.empty() do
+  defp verify_field_unused(%__MODULE__{} = board, x, y) do
+    if value_at(board, x, y) == BoardField.empty() do
       :ok
     else
       {:error, :field_used_already}
     end
+  end
+
+  def value_at(%__MODULE{fields: fields}, x, y) do
+    get_in(fields, [Access.at(x), Access.at(y)])
   end
 end

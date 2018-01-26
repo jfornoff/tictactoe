@@ -45,8 +45,14 @@ defmodule Tictactoe.GameServer do
     with {:ok, new_game_state} <- Game.Logic.play(state, player, position) do
       {:reply, :ok, new_game_state}
     else
+      {:end, winner} ->
+        {:stop, :normal, {:end, winner_message(winner)}, :ok}
+
       error ->
         {:reply, error, state}
     end
   end
+
+  defp winner_message("X"), do: :x_wins
+  defp winner_message("O"), do: :o_wins
 end

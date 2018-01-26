@@ -1,5 +1,5 @@
 defmodule Tictactoe.Game.Logic do
-  alias Tictactoe.Game.State
+  alias Tictactoe.Game.{State, Logic.GameEnding}
 
   def play(%State{} = state, player, position) do
     with :ok <- State.JoinedPlayers.verify_complete(state.players),
@@ -10,7 +10,11 @@ defmodule Tictactoe.Game.Logic do
         |> Map.put(:board, new_board)
         |> switch_playing_now()
 
-      {:ok, new_state}
+      if game_ended?(new_state) do
+        {:end, winner(new_state)}
+      else
+        {:ok, new_state}
+      end
     end
   end
 
@@ -19,4 +23,12 @@ defmodule Tictactoe.Game.Logic do
 
   defp switch_playing_now(state = %State{playing_now: "X"}), do: %State{state | playing_now: "O"}
   defp switch_playing_now(state = %State{playing_now: "O"}), do: %State{state | playing_now: "X"}
+
+  defp game_ended?(%State{board: board}) do
+    GameEnding.game_ended?(board)
+  end
+
+  defp winner(%State{board: board}) do
+    GameEnding.winner(board)
+  end
 end

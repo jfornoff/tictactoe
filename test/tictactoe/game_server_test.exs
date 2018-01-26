@@ -53,6 +53,23 @@ defmodule Tictactoe.GameServerTest do
       assert(:ok == GameServer.play(pid, "X", [1, 1]))
       assert({:error, :field_used_already} == GameServer.play(pid, "O", [1, 1]))
     end
+
+    test "it works for other fields", %{server: pid} do
+      assert(:ok == GameServer.play(pid, "X", [1, 1]))
+      assert(:ok == GameServer.play(pid, "O", [1, 2]))
+    end
+  end
+
+  describe ".play with a player winning" do
+    setup :join_all_players
+
+    test "game ends", %{server: pid} do
+      assert(:ok == GameServer.play(pid, "X", [0, 0]))
+      assert(:ok == GameServer.play(pid, "O", [1, 0]))
+      assert(:ok == GameServer.play(pid, "X", [0, 1]))
+      assert(:ok == GameServer.play(pid, "O", [1, 1]))
+      assert({:end, :x_wins} == GameServer.play(pid, "X", [0, 2]))
+    end
   end
 
   defp start_game_server(_) do
