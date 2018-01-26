@@ -6,6 +6,10 @@ defmodule Tictactoe.GameServer do
     GenServer.start_link(__MODULE__, Game.State.initial())
   end
 
+  def start_link(game_id) do
+    GenServer.start_link(__MODULE__, Game.State.initial(), name: game_id)
+  end
+
   # Public API
   def add_player(game) do
     GenServer.call(game, :add_player)
