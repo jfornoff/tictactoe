@@ -18,14 +18,30 @@ defmodule Tictactoe.Game.Logic.GameEnding do
     [[2, 0], [1, 1], [0, 2]]
   ]
   def game_ended?(%Board{} = board) do
-    winner(board) != :none
+    outcome(board) != :none
   end
 
-  def winner(%Board{} = board) do
+  def outcome(%Board{} = board) do
     with nil <- vertical_winner(board),
          nil <- horizontal_winner(board),
-         nil <- diagonal_winner(board) do
+         nil <- diagonal_winner(board),
+         nil <- check_draw(board) do
       :none
+    end
+  end
+
+  defp check_draw(%Board{} = board) do
+    for x <- [0, 1, 2],
+        y <- [0, 1, 2] do
+      Board.value_at(board, x, y)
+    end
+    |> Enum.all?(fn field_value ->
+      field_value != BoardField.empty()
+    end)
+    |> if do
+      :draw
+    else
+      nil
     end
   end
 

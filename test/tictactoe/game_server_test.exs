@@ -72,6 +72,22 @@ defmodule Tictactoe.GameServerTest do
     end
   end
 
+  describe ".play with a draw" do
+    setup :join_all_players
+
+    test "game ends", %{server: pid} do
+      assert(:ok == GameServer.play(pid, "X", [0, 0]))
+      assert(:ok == GameServer.play(pid, "O", [0, 1]))
+      assert(:ok == GameServer.play(pid, "X", [0, 2]))
+      assert(:ok == GameServer.play(pid, "O", [1, 1]))
+      assert(:ok == GameServer.play(pid, "X", [1, 2]))
+      assert(:ok == GameServer.play(pid, "O", [2, 2]))
+      assert(:ok == GameServer.play(pid, "X", [1, 0]))
+      assert(:ok == GameServer.play(pid, "O", [2, 0]))
+      assert({:end, :draw} == GameServer.play(pid, "X", [2, 1]))
+    end
+  end
+
   defp start_game_server(_) do
     {:ok, pid} = GameServer.start_link()
 

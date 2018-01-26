@@ -29,6 +29,6 @@ defmodule Tictactoe.Game.Logic do
   end
 
   defp winner(%State{board: board}) do
-    GameEnding.winner(board)
+    GameEnding.outcome(board)
   end
 end
