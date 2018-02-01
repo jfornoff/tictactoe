@@ -8,7 +8,7 @@ defmodule TictactoeWeb.GameChannelTest do
       {:ok, _, first_player_socket} = join_player("first_player")
 
       ref = push(first_player_socket, "play", %{x: 1, y: 1})
-      assert_reply(ref, :error, %{description: "Game not full yet"})
+      assert_reply(ref, :error, %{description: "Game not full yet!"})
     end
   end
 
@@ -23,9 +23,18 @@ defmodule TictactoeWeb.GameChannelTest do
       second_player_socket: second_player_socket
     } do
       # O plays, is not allowed to
-      ref = push(second_player_socket, "play", %{x: 1, y: 1})
-      assert_reply(ref, :error, %{description: "Not your turn"})
+      ref = play_move(second_player_socket, 1, 1)
+      assert_reply(ref, :error, %{description: "Not your turn!"})
     end
+
+    test "it accepts the right player making a move", %{first_player_socket: first_player_socket} do
+      ref = play_move(first_player_socket, 1, 1)
+      assert_reply(ref, :ok)
+    end
+  end
+
+  defp play_move(player_socket, x, y) do
+    push(player_socket, "play", %{x: x, y: y})
   end
 
   defp join_player(player_name) do
