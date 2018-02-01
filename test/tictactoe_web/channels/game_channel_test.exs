@@ -3,12 +3,41 @@ defmodule TictactoeWeb.GameChannelTest do
 
   alias TictactoeWeb.GameChannel
 
-  test "allows two players to join at most" do
-    {:ok, _, _} = socket("first_user", %{}) |> subscribe_and_join(GameChannel, "game:foo")
+  describe "a half-full Tictactoe game" do
+    test "rejects play moves" do
+      {:ok, _, first_player_socket} = join_player("first_player")
 
-    {:ok, _, _} = socket("second_user", %{}) |> subscribe_and_join(GameChannel, "game:foo")
+      ref = push(first_player_socket, "play", %{x: 1, y: 1})
+      assert_reply(ref, :error, %{description: "Game not full yet"})
+    end
+  end
 
-    {:error, :game_full} =
-      socket("third_user", %{}) |> subscribe_and_join(GameChannel, "game:foo")
+  describe "a full Tictactoe game" do
+    setup [:join_two_players]
+
+    test "does not allow any more players to join" do
+      assert({:error, :game_full} == join_player("third_player"))
+    end
+
+    test "it rejects the wrong player playing a move", %{
+      second_player_socket: second_player_socket
+    } do
+      # O plays, is not allowed to
+      ref = push(second_player_socket, "play", %{x: 1, y: 1})
+      assert_reply(ref, :error, %{description: "Not your turn"})
+    end
+  end
+
+  defp join_player(player_name) do
+    socket(player_name, %{}) |> subscribe_and_join(GameChannel, "game:foo")
+  end
+
+  defp join_two_players(context) do
+    {:ok, _, first_player_socket} = join_player("first_player")
+    {:ok, _, second_player_socket} = join_player("second_player")
+
+    context
+    |> Map.put(:first_player_socket, first_player_socket)
+    |> Map.put(:second_player_socket, second_player_socket)
   end
 end
