@@ -26,9 +26,7 @@ defmodule TictactoeWeb.GameChannel do
     {:reply, response, socket}
   end
 
-  defp player_sign(socket) do
-    socket.assigns[:tictactoe_sign]
-  end
+  defp player_sign(socket), do: socket.assigns[:tictactoe_sign]
 
   defp find_or_start_game(game_id) do
     game_id
