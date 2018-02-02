@@ -13,5 +13,5 @@ defmodule Tictactoe.Game.State do
     end
   end
 
-  def playing_now(current = %__MODULE__{playing_now: playing_now}), do: playing_now
+  def playing_now(%__MODULE__{playing_now: playing_now}), do: playing_now
 end
