@@ -20,6 +20,10 @@ defmodule Tictactoe.Game.State.Board do
     end
   end
 
+  def value_at(%__MODULE{fields: fields}, x, y) do
+    get_in(fields, [Access.at(x), Access.at(y)])
+  end
+
   defp verify_valid_position(x, y) do
     if x >= 0 && x <= 2 && y >= 0 && y <= 2 do
       :ok
@@ -34,9 +38,5 @@ defmodule Tictactoe.Game.State.Board do
     else
       {:error, :field_used_already}
     end
-  end
-
-  def value_at(%__MODULE{fields: fields}, x, y) do
-    get_in(fields, [Access.at(x), Access.at(y)])
   end
 end

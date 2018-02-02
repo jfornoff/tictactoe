@@ -27,6 +27,10 @@ defmodule Tictactoe.GameServer do
     GenServer.call(game, {:play, player, position})
   end
 
+  def playing_now(game) do
+    GenServer.call(game, :get_playing_now)
+  end
+
   # GenServer callbacks
   def handle_call(:add_player, _, state) do
     with {:ok, player_identifier, new_state} <- Game.State.add_player(state) do
@@ -43,6 +47,10 @@ defmodule Tictactoe.GameServer do
 
   def handle_call(:get_board, _, state) do
     {:reply, Game.State.board(state), state}
+  end
+
+  def handle_call(:get_playing_now, _, state) do
+    {:reply, Game.State.playing_now(state), state}
   end
 
   def handle_call({:play, player, position}, _, state) do

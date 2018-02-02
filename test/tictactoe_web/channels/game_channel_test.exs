@@ -5,9 +5,9 @@ defmodule TictactoeWeb.GameChannelTest do
 
   describe "a half-full Tictactoe game" do
     test "rejects play moves" do
-      {:ok, _, first_player_socket} = join_player("first_player")
+      {:ok, _, x_socket} = join_player("x")
 
-      ref = push(first_player_socket, "play", %{x: 1, y: 1})
+      ref = push(x_socket, "play", %{x: 1, y: 1})
       assert_reply(ref, :error, %{description: "Game not full yet!"})
     end
   end
@@ -20,16 +20,21 @@ defmodule TictactoeWeb.GameChannelTest do
     end
 
     test "it rejects the wrong player playing a move", %{
-      second_player_socket: second_player_socket
+      o_socket: o_socket
     } do
       # O plays, is not allowed to
-      ref = play_move(second_player_socket, 1, 1)
+      ref = play_move(o_socket, 1, 1)
       assert_reply(ref, :error, %{description: "Not your turn!"})
     end
 
-    test "it accepts the right player making a move", %{first_player_socket: first_player_socket} do
-      ref = play_move(first_player_socket, 1, 1)
+    test "it accepts the right player making a move", %{x_socket: x_socket} do
+      ref = play_move(x_socket, 1, 1)
       assert_reply(ref, :ok)
+
+      assert_broadcast("game_update", %{
+        current_player: "O",
+        board: %{top: ["", "", ""], middle: ["", "X", ""], bottom: ["", "", ""]}
+      })
     end
   end
 
@@ -42,11 +47,11 @@ defmodule TictactoeWeb.GameChannelTest do
   end
 
   defp join_two_players(context) do
-    {:ok, _, first_player_socket} = join_player("first_player")
-    {:ok, _, second_player_socket} = join_player("second_player")
+    {:ok, _, x_socket} = join_player("x")
+    {:ok, _, o_socket} = join_player("o")
 
     context
-    |> Map.put(:first_player_socket, first_player_socket)
-    |> Map.put(:second_player_socket, second_player_socket)
+    |> Map.put(:x_socket, x_socket)
+    |> Map.put(:o_socket, o_socket)
   end
 end

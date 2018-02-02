@@ -12,4 +12,6 @@ defmodule Tictactoe.Game.State do
       {:ok, added_player, %__MODULE__{current | players: new_players}}
     end
   end
+
+  def playing_now(current = %__MODULE__{playing_now: playing_now}), do: playing_now
 end

@@ -2,6 +2,7 @@ defmodule TictactoeWeb.GameChannel do
   use TictactoeWeb, :channel
 
   alias Tictactoe.GameServer
+  alias Tictactoe.View.BoardView
 
   def join("game:" <> game_id, _payload, socket) do
     game_id
@@ -18,6 +19,14 @@ defmodule TictactoeWeb.GameChannel do
 
     response =
       with :ok <- GameServer.play(game_pid, player_sign(socket), [x, y]) do
+        broadcast!(socket, "game_update", %{
+          current_player: GameServer.playing_now(game_pid),
+          board:
+            game_pid
+            |> GameServer.board()
+            |> BoardView.encode_board()
+        })
+
         :ok
       else
         {:error, error_identifier} -> {:error, %{description: error_message(error_identifier)}}
