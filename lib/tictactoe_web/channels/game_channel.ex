@@ -9,8 +9,12 @@ defmodule TictactoeWeb.GameChannel do
     |> find_or_start_game()
     |> GameServer.add_player()
     |> case do
-      {:ok, player_identifier} -> {:ok, assign(socket, :tictactoe_sign, player_identifier)}
-      {:error, error} -> {:error, error}
+      {:ok, player_identifier} ->
+        # TODO: Broadcast "game_start" when game full
+        {:ok, assign(socket, :tictactoe_sign, player_identifier)}
+
+      {:error, error} ->
+        {:error, error}
     end
   end
 
@@ -19,6 +23,7 @@ defmodule TictactoeWeb.GameChannel do
 
     response =
       with :ok <- GameServer.play(game_pid, player_sign(socket), [x, y]) do
+        # TODO: Broadcast "game_ended" when game ended (draw / winner)
         broadcast!(socket, "game_update", %{
           current_player: GameServer.playing_now(game_pid),
           board:
