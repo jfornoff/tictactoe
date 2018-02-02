@@ -1,4 +1,4 @@
-defmodule Tictactoe.View.BoardView do
+defmodule TictactoeWeb.View.BoardView do
   alias Tictactoe.Game.State.Board
 
   def encode_board(%Board{fields: [top_row, mid_row, bottom_row]}) do

@@ -2,7 +2,7 @@ defmodule TictactoeWeb.GameChannel do
   use TictactoeWeb, :channel
 
   alias Tictactoe.GameServer
-  alias Tictactoe.View.BoardView
+  alias TictactoeWeb.View.BoardView
 
   def join("game:" <> game_id, _payload, socket) do
     game_id
