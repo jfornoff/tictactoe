@@ -2,6 +2,7 @@ defmodule TictactoeWeb.GameChannel do
   use TictactoeWeb, :channel
 
   alias Tictactoe.GameServer
+  alias Tictactoe.Game.State.JoinedPlayers
   alias TictactoeWeb.View.BoardView
 
   def join("game:" <> game_id, _payload, socket) do
@@ -11,6 +12,8 @@ defmodule TictactoeWeb.GameChannel do
     |> case do
       {:ok, player_identifier} ->
         # TODO: Broadcast "game_start" when game full
+        send(self(), {:after_join, game_id})
+
         {:ok, assign(socket, :tictactoe_sign, player_identifier)}
 
       {:error, error} ->
@@ -38,6 +41,24 @@ defmodule TictactoeWeb.GameChannel do
       end
 
     {:reply, response, socket}
+  end
+
+  def handle_info({:after_join, game_id}, socket) do
+    game_pid =
+      game_id
+      |> find_or_start_game()
+
+    with :ok <- game_pid |> GameServer.players() |> JoinedPlayers.verify_complete() do
+      broadcast!(socket, "game_start", %{
+        current_player: GameServer.playing_now(game_pid),
+        board:
+          game_pid
+          |> GameServer.board()
+          |> BoardView.encode_board()
+      })
+    end
+
+    {:noreply, socket}
   end
 
   defp player_sign(socket), do: socket.assigns[:tictactoe_sign]

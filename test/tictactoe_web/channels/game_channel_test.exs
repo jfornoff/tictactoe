@@ -12,6 +12,29 @@ defmodule TictactoeWeb.GameChannelTest do
     end
   end
 
+  describe "the first player joining" do
+    test "does not broadcasta a game_start event" do
+      {:ok, _, _} = join_player("x")
+
+      refute_broadcast("game_start", %{
+        current_player: "X",
+        board: %{top: ["", "", ""], middle: ["", "", ""], bottom: ["", "", ""]}
+      })
+    end
+  end
+
+  describe "the last player joining" do
+    test "broadcasts a game_start event with all necessary information" do
+      {:ok, _, _} = join_player("x")
+      {:ok, _, _} = join_player("y")
+
+      assert_broadcast("game_start", %{
+        current_player: "X",
+        board: %{top: ["", "", ""], middle: ["", "", ""], bottom: ["", "", ""]}
+      })
+    end
+  end
+
   describe "a full Tictactoe game" do
     setup [:join_two_players]
 
