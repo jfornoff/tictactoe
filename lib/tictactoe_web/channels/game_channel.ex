@@ -11,7 +11,6 @@ defmodule TictactoeWeb.GameChannel do
     |> GameServer.add_player()
     |> case do
       {:ok, player_identifier} ->
-        # TODO: Broadcast "game_start" when game full
         send(self(), {:after_join, game_id})
 
         {:ok, assign(socket, :tictactoe_sign, player_identifier)}
@@ -48,7 +47,7 @@ defmodule TictactoeWeb.GameChannel do
       game_id
       |> find_or_start_game()
 
-    with :ok <- game_pid |> GameServer.players() |> JoinedPlayers.verify_complete() do
+    if GameServer.game_ready_to_start?(game_pid) do
       broadcast!(socket, "game_start", %{
         current_player: GameServer.playing_now(game_pid),
         board:

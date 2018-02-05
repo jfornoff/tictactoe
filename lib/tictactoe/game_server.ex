@@ -31,6 +31,10 @@ defmodule Tictactoe.GameServer do
     GenServer.call(game, :get_playing_now)
   end
 
+  def game_ready_to_start?(game) do
+    game |> players() |> Game.State.JoinedPlayers.verify_complete() == :ok
+  end
+
   # GenServer callbacks
   def handle_call(:add_player, _, state) do
     with {:ok, player_identifier, new_state} <- Game.State.add_player(state) do
