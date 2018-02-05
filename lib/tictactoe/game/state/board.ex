@@ -1,11 +1,12 @@
 defmodule Tictactoe.Game.State.Board do
   alias Tictactoe.Game.State.BoardField
+  alias Tictactoe.Game.State.Board.Row
 
-  defstruct fields: [
-              [BoardField.empty(), BoardField.empty(), BoardField.empty()],
-              [BoardField.empty(), BoardField.empty(), BoardField.empty()],
-              [BoardField.empty(), BoardField.empty(), BoardField.empty()]
-            ]
+  defstruct rows: %{
+              top: %Row{},
+              middle: %Row{},
+              bottom: %Row{}
+            }
 
   def empty do
     %__MODULE__{}
@@ -14,14 +15,16 @@ defmodule Tictactoe.Game.State.Board do
   def set_field(board = %__MODULE__{}, player, [x, y]) do
     with :ok <- verify_valid_position(x, y),
          :ok <- verify_field_unused(board, x, y) do
-      new_board = %__MODULE__{fields: put_in(board.fields, [Access.at(x), Access.at(y)], player)}
+      new_board = %__MODULE__{
+        rows: put_in(board.rows, [row_at(y), Row.field_at(x)], player)
+      }
 
       {:ok, new_board}
     end
   end
 
-  def value_at(%__MODULE{fields: fields}, x, y) do
-    get_in(fields, [Access.at(x), Access.at(y)])
+  def value_at(%__MODULE__{rows: rows}, x, y) do
+    get_in(rows, [row_at(y), Row.field_at(x)])
   end
 
   defp verify_valid_position(x, y) do
@@ -39,4 +42,8 @@ defmodule Tictactoe.Game.State.Board do
       {:error, :field_used_already}
     end
   end
+
+  defp row_at(0), do: Access.key!(:bottom)
+  defp row_at(1), do: Access.key!(:middle)
+  defp row_at(2), do: Access.key!(:top)
 end

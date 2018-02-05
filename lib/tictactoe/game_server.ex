@@ -6,6 +6,8 @@ defmodule Tictactoe.GameServer do
     GenServer.start_link(__MODULE__, Game.State.initial())
   end
 
+  def start_link(game_id) when is_binary(game_id), do: game_id |> String.to_atom() |> start_link
+
   def start_link(game_id) do
     GenServer.start_link(__MODULE__, Game.State.initial(), name: game_id)
   end
@@ -35,6 +37,15 @@ defmodule Tictactoe.GameServer do
     game |> players() |> Game.State.JoinedPlayers.verify_complete() == :ok
   end
 
+  def game_ended?(game) do
+    case game |> board |> Game.Logic.GameEnding.outcome() do
+      :none -> {:error, :not_ended}
+      :draw -> {:ok, :draw}
+      "X" -> {:ok, :x_wins}
+      "Y" -> {:ok, :y_wins}
+    end
+  end
+
   # GenServer callbacks
   def handle_call(:add_player, _, state) do
     with {:ok, player_identifier, new_state} <- Game.State.add_player(state) do
@@ -61,8 +72,8 @@ defmodule Tictactoe.GameServer do
     with {:ok, new_game_state} <- Game.Logic.play(state, player, position) do
       {:reply, :ok, new_game_state}
     else
-      {:end, outcome} ->
-        {:stop, :normal, {:end, outcome_message(outcome)}, :ok}
+      {:end, outcome, end_state} ->
+        {:stop, :normal, {:end, outcome_message(outcome), Game.State.board(end_state)}, :ok}
 
       error ->
         {:reply, error, state}

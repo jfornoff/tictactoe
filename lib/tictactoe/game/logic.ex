@@ -11,7 +11,7 @@ defmodule Tictactoe.Game.Logic do
         |> switch_playing_now()
 
       if game_ended?(new_state) do
-        {:end, winner(new_state)}
+        {:end, winner(new_state), new_state}
       else
         {:ok, new_state}
       end

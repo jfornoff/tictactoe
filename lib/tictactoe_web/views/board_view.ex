@@ -1,12 +1,17 @@
 defmodule TictactoeWeb.View.BoardView do
   alias Tictactoe.Game.State.Board
+  alias Tictactoe.Game.State.Board.Row
 
-  def encode_board(%Board{fields: [top_row, mid_row, bottom_row]}) do
-    %{top: encode_row(top_row), middle: encode_row(mid_row), bottom: encode_row(bottom_row)}
+  def encode_board(%Board{rows: %{top: top, middle: middle, bottom: bottom}}) do
+    %{top: encode_row(top), middle: encode_row(middle), bottom: encode_row(bottom)}
   end
 
-  defp encode_row(row) when is_list(row) and length(row) == 3 do
-    Enum.map(row, &encode_field_state/1)
+  defp encode_row(%Row{left: left, middle: middle, right: right}) do
+    [
+      encode_field_state(left),
+      encode_field_state(middle),
+      encode_field_state(right)
+    ]
   end
 
   defp encode_field_state(field) do

@@ -3,7 +3,7 @@ defmodule TictactoeWeb.GameChannel do
 
   alias Tictactoe.GameServer
   alias Tictactoe.Game.State.JoinedPlayers
-  alias TictactoeWeb.View.BoardView
+  alias TictactoeWeb.View.{BoardView, OutcomeView}
 
   def join("game:" <> game_id, _payload, socket) do
     game_id
@@ -36,7 +36,16 @@ defmodule TictactoeWeb.GameChannel do
 
         :ok
       else
-        {:error, error_identifier} -> {:error, %{description: error_message(error_identifier)}}
+        {:end, outcome, board} ->
+          broadcast!(socket, "game_end", %{
+            outcome: OutcomeView.outcome_message(outcome),
+            board: BoardView.encode_board(board)
+          })
+
+          :ok
+
+        {:error, error_identifier} ->
+          {:error, %{description: error_message(error_identifier)}}
       end
 
     {:reply, response, socket}

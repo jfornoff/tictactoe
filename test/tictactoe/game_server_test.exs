@@ -1,6 +1,7 @@
 defmodule Tictactoe.GameServerTest do
   use ExUnit.Case, async: true
   alias Tictactoe.GameServer
+  alias Tictactoe.Game.State.Board.Row
 
   setup :start_game_server
 
@@ -68,7 +69,16 @@ defmodule Tictactoe.GameServerTest do
       assert(:ok == GameServer.play(pid, "O", [1, 0]))
       assert(:ok == GameServer.play(pid, "X", [0, 1]))
       assert(:ok == GameServer.play(pid, "O", [1, 1]))
-      assert({:end, :x_wins} == GameServer.play(pid, "X", [0, 2]))
+
+      expected_board = %Tictactoe.Game.State.Board{
+        rows: %{
+          top: %Row{left: "X", middle: :empty, right: :empty},
+          middle: %Row{left: "X", middle: "O", right: :empty},
+          bottom: %Row{left: "X", middle: "O", right: :empty}
+        }
+      }
+
+      assert({:end, :x_wins, expected_board} == GameServer.play(pid, "X", [0, 2]))
     end
   end
 
@@ -84,7 +94,16 @@ defmodule Tictactoe.GameServerTest do
       assert(:ok == GameServer.play(pid, "O", [2, 2]))
       assert(:ok == GameServer.play(pid, "X", [1, 0]))
       assert(:ok == GameServer.play(pid, "O", [2, 0]))
-      assert({:end, :draw} == GameServer.play(pid, "X", [2, 1]))
+
+      expected_board = %Tictactoe.Game.State.Board{
+        rows: %{
+          top: %Row{left: "X", middle: "X", right: "O"},
+          middle: %Row{left: "O", middle: "O", right: "X"},
+          bottom: %Row{left: "X", middle: "X", right: "O"}
+        }
+      }
+
+      assert({:end, :draw, expected_board} == GameServer.play(pid, "X", [2, 1]))
     end
   end
 

@@ -1,6 +1,7 @@
 defmodule TictactoeWeb.GameChannelTest do
   use TictactoeWeb.ChannelCase
 
+  alias Tictactoe.GameServer
   alias TictactoeWeb.GameChannel
 
   describe "a half-full Tictactoe game" do
@@ -61,6 +62,57 @@ defmodule TictactoeWeb.GameChannelTest do
     end
   end
 
+  describe "game endings" do
+    setup [:join_two_players, :get_game_server_pid]
+
+    test "X winning", %{x_socket: x_socket, server_pid: pid} do
+      :ok = GameServer.play(pid, "X", [0, 0])
+      :ok = GameServer.play(pid, "O", [1, 0])
+      :ok = GameServer.play(pid, "X", [0, 1])
+      :ok = GameServer.play(pid, "O", [1, 1])
+
+      play_move(x_socket, 0, 2)
+
+      assert_broadcast("game_end", %{
+        outcome: "X wins",
+        board: %{top: ["X", "", ""], middle: ["X", "O", ""], bottom: ["X", "O", ""]}
+      })
+    end
+
+    test "O winning", %{o_socket: o_socket, server_pid: pid} do
+      :ok = GameServer.play(pid, "X", [0, 0])
+      :ok = GameServer.play(pid, "O", [0, 1])
+      :ok = GameServer.play(pid, "X", [1, 0])
+      :ok = GameServer.play(pid, "O", [1, 1])
+      :ok = GameServer.play(pid, "X", [0, 2])
+
+      play_move(o_socket, 2, 1)
+
+      assert_broadcast("game_end", %{
+        outcome: "O wins",
+        board: %{top: ["X", "", ""], middle: ["O", "O", "O"], bottom: ["X", "X", ""]}
+      })
+    end
+
+    test "draw", %{x_socket: x_socket, server_pid: pid} do
+      :ok = GameServer.play(pid, "X", [0, 0])
+      :ok = GameServer.play(pid, "O", [0, 1])
+      :ok = GameServer.play(pid, "X", [0, 2])
+      :ok = GameServer.play(pid, "O", [1, 1])
+      :ok = GameServer.play(pid, "X", [1, 2])
+      :ok = GameServer.play(pid, "O", [2, 2])
+      :ok = GameServer.play(pid, "X", [1, 0])
+      :ok = GameServer.play(pid, "O", [2, 0])
+
+      play_move(x_socket, 2, 1)
+
+      assert_broadcast("game_end", %{
+        outcome: "Draw",
+        board: %{top: ["X", "X", "O"], middle: ["O", "O", "X"], bottom: ["X", "X", "O"]}
+      })
+    end
+  end
+
   defp play_move(player_socket, x, y) do
     push(player_socket, "play", %{x: x, y: y})
   end
@@ -76,5 +128,12 @@ defmodule TictactoeWeb.GameChannelTest do
     context
     |> Map.put(:x_socket, x_socket)
     |> Map.put(:o_socket, o_socket)
+  end
+
+  defp get_game_server_pid(context) do
+    {:error, {:already_started, pid}} = GameServer.start_link("foo")
+
+    context
+    |> Map.put(:server_pid, pid)
   end
 end
