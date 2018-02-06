@@ -25,7 +25,6 @@ defmodule TictactoeWeb.GameChannel do
 
     response =
       with :ok <- GameServer.play(game_pid, player_sign(socket), [x, y]) do
-        # TODO: Broadcast "game_ended" when game ended (draw / winner)
         broadcast!(socket, "game_update", %{
           current_player: GameServer.playing_now(game_pid),
           board:
