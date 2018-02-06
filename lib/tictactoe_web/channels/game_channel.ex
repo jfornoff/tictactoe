@@ -4,7 +4,6 @@ defmodule TictactoeWeb.GameChannel do
   require Logger
 
   alias Tictactoe.{GameSupervisor, GameServer}
-  alias Tictactoe.Game.State.JoinedPlayers
   alias TictactoeWeb.View.{BoardView, OutcomeView}
 
   def join("game:" <> game_id, _payload, socket) do
