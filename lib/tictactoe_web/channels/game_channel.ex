@@ -23,7 +23,7 @@ defmodule TictactoeWeb.GameChannel do
   end
 
   def terminate(shutdown_tuple, %Phoenix.Socket{topic: "game:" <> game_id} = socket) do
-    game_pid = game_id |> find_or_start_game()
+    game_pid = find_or_start_game(game_id)
     GameServer.remove_player(game_pid, player_sign(socket))
 
     if GameServer.game_empty?(game_pid) do
