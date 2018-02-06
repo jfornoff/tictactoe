@@ -13,6 +13,17 @@ defmodule TictactoeWeb.GameChannelTest do
     end
   end
 
+  describe "a player leaving a half-full game" do
+    setup [:join_one_player, :get_game_server_pid]
+
+    test "terminates the game server", %{x_socket: socket, server_pid: pid} do
+      ref = Process.monitor(pid)
+      leave(socket)
+
+      assert_receive({:DOWN, ^ref, _, _, _})
+    end
+  end
+
   describe "the first player joining" do
     test "does not broadcasta a game_start event" do
       {:ok, _, _} = join_player("x")
@@ -119,6 +130,13 @@ defmodule TictactoeWeb.GameChannelTest do
 
   defp join_player(player_name) do
     socket(player_name, %{}) |> subscribe_and_join(GameChannel, "game:foo")
+  end
+
+  defp join_one_player(context) do
+    {:ok, _, x_socket} = join_player("x")
+
+    context
+    |> Map.put(:x_socket, x_socket)
   end
 
   defp join_two_players(context) do

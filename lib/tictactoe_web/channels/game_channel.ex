@@ -1,6 +1,8 @@
 defmodule TictactoeWeb.GameChannel do
   use TictactoeWeb, :channel
 
+  require Logger
+
   alias Tictactoe.GameServer
   alias Tictactoe.Game.State.JoinedPlayers
   alias TictactoeWeb.View.{BoardView, OutcomeView}
@@ -18,6 +20,16 @@ defmodule TictactoeWeb.GameChannel do
       {:error, error} ->
         {:error, error}
     end
+  end
+
+  def terminate(shutdown_tuple, %Phoenix.Socket{topic: "game" <> game_id}) do
+    game_id
+    |> find_or_start_game()
+    |> GenServer.stop()
+
+    Logger.info(inspect(game_id))
+
+    shutdown_tuple
   end
 
   def handle_in("play", %{"x" => x, "y" => y}, %{topic: "game:" <> game_id} = socket) do
