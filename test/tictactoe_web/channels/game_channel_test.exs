@@ -1,8 +1,10 @@
 defmodule TictactoeWeb.GameChannelTest do
   use TictactoeWeb.ChannelCase
 
-  alias Tictactoe.GameServer
+  alias Tictactoe.{GameServer, GameSupervisor}
   alias TictactoeWeb.GameChannel
+
+  setup :start_supervisor
 
   describe "a half-full Tictactoe game" do
     test "rejects play moves" do
@@ -24,8 +26,20 @@ defmodule TictactoeWeb.GameChannelTest do
     end
   end
 
+  describe "a player leaving a full game" do
+    setup [:join_two_players, :get_game_server_pid]
+
+    test "does not terminate the game server", %{x_socket: socket, server_pid: pid} do
+      ref = Process.monitor(pid)
+
+      leave(socket)
+
+      refute_receive({:DOWN, ^ref, _, _, _})
+    end
+  end
+
   describe "the first player joining" do
-    test "does not broadcasta a game_start event" do
+    test "does not broadcast a game_start event" do
       {:ok, _, _} = join_player("x")
 
       refute_broadcast("game_start", %{
@@ -38,7 +52,7 @@ defmodule TictactoeWeb.GameChannelTest do
   describe "the last player joining" do
     test "broadcasts a game_start event with all necessary information" do
       {:ok, _, _} = join_player("x")
-      {:ok, _, _} = join_player("y")
+      {:ok, _, _} = join_player("o")
 
       assert_broadcast("game_start", %{
         current_player: "X",
@@ -153,5 +167,10 @@ defmodule TictactoeWeb.GameChannelTest do
 
     context
     |> Map.put(:server_pid, pid)
+  end
+
+  defp start_supervisor(context) do
+    GameSupervisor.start_link()
+    context
   end
 end

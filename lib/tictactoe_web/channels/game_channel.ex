@@ -3,7 +3,7 @@ defmodule TictactoeWeb.GameChannel do
 
   require Logger
 
-  alias Tictactoe.GameServer
+  alias Tictactoe.{GameSupervisor, GameServer}
   alias Tictactoe.Game.State.JoinedPlayers
   alias TictactoeWeb.View.{BoardView, OutcomeView}
 
@@ -22,12 +22,13 @@ defmodule TictactoeWeb.GameChannel do
     end
   end
 
-  def terminate(shutdown_tuple, %Phoenix.Socket{topic: "game" <> game_id}) do
-    game_id
-    |> find_or_start_game()
-    |> GenServer.stop()
+  def terminate(shutdown_tuple, %Phoenix.Socket{topic: "game:" <> game_id} = socket) do
+    game_pid = game_id |> find_or_start_game()
+    GameServer.remove_player(game_pid, player_sign(socket))
 
-    Logger.info(inspect(game_id))
+    if GameServer.game_empty?(game_pid) do
+      GameSupervisor.stop_game(game_pid)
+    end
 
     shutdown_tuple
   end
@@ -85,7 +86,7 @@ defmodule TictactoeWeb.GameChannel do
   defp find_or_start_game(game_id) do
     game_id
     |> String.to_atom()
-    |> GameServer.start_link()
+    |> GameSupervisor.start_game()
     |> case do
       {:ok, pid} -> pid
       {:error, {:already_started, pid}} -> pid

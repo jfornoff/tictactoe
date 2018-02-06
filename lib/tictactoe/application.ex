@@ -1,18 +1,21 @@
 defmodule Tictactoe.Application do
   use Application
 
+  import Supervisor.Spec
+
+  @environment Mix.env()
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
-    import Supervisor.Spec
-
     # Define workers and child supervisors to be supervised
-    children = [
-      # Start the endpoint when the application starts
-      supervisor(TictactoeWeb.Endpoint, []),
-      # Start your own worker by calling: Tictactoe.Worker.start_link(arg1, arg2, arg3)
-      # worker(Tictactoe.Worker, [arg1, arg2, arg3]),
-    ]
+    children =
+      game_supervisor() ++
+        [
+          # Start the endpoint when the application starts
+          supervisor(TictactoeWeb.Endpoint, [])
+          # Start your own worker by calling: Tictactoe.Worker.start_link(arg1, arg2, arg3)
+          # worker(Tictactoe.Worker, [arg1, arg2, arg3]),
+        ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -25,5 +28,13 @@ defmodule Tictactoe.Application do
   def config_change(changed, _new, removed) do
     TictactoeWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp game_supervisor() do
+    if @environment == :test do
+      []
+    else
+      [supervisor(Tictactoe.GameSupervisor, [])]
+    end
   end
 end

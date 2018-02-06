@@ -28,6 +28,17 @@ defmodule Tictactoe.GameServerTest do
     end
   end
 
+  describe ".remove_player" do
+    test "errors when the player is not joined", %{server: pid} do
+      assert(GameServer.remove_player(pid, "X") == {:error, :player_not_joined})
+    end
+
+    test "returns :ok when the player is joined", %{server: pid} do
+      {:ok, player_sign} = GameServer.add_player(pid)
+      assert(GameServer.remove_player(pid, player_sign) == :ok)
+    end
+  end
+
   describe ".play with incomplete players" do
     test "errors when no two players", %{server: pid} do
       assert(GameServer.play(pid, "X", [1, 1]) == {:error, :game_not_full})

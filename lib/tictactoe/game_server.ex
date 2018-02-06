@@ -13,24 +13,22 @@ defmodule Tictactoe.GameServer do
   end
 
   # Public API
-  def add_player(game) do
-    GenServer.call(game, :add_player)
-  end
+  def add_player(game), do: GenServer.call(game, :add_player)
 
-  def players(game) do
-    GenServer.call(game, :get_players)
-  end
+  def remove_player(game, player_sign), do: GenServer.call(game, {:remove_player, player_sign})
 
-  def board(game) do
-    GenServer.call(game, :get_board)
-  end
+  def players(game), do: GenServer.call(game, :get_players)
 
-  def play(game, player, position) do
-    GenServer.call(game, {:play, player, position})
-  end
+  def board(game), do: GenServer.call(game, :get_board)
 
-  def playing_now(game) do
-    GenServer.call(game, :get_playing_now)
+  def play(game, player, position), do: GenServer.call(game, {:play, player, position})
+
+  def playing_now(game), do: GenServer.call(game, :get_playing_now)
+
+  def game_empty?(game) do
+    game
+    |> players()
+    |> Game.State.JoinedPlayers.empty?()
   end
 
   def game_ready_to_start?(game) do
@@ -50,6 +48,15 @@ defmodule Tictactoe.GameServer do
   def handle_call(:add_player, _, state) do
     with {:ok, player_identifier, new_state} <- Game.State.add_player(state) do
       {:reply, {:ok, player_identifier}, new_state}
+    else
+      error ->
+        {:reply, error, state}
+    end
+  end
+
+  def handle_call({:remove_player, player_sign}, _, state) do
+    with {:ok, new_state} <- Game.State.remove_player(state, player_sign) do
+      {:reply, :ok, new_state}
     else
       error ->
         {:reply, error, state}

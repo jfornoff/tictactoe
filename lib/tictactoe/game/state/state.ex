@@ -13,5 +13,11 @@ defmodule Tictactoe.Game.State do
     end
   end
 
+  def remove_player(current = %__MODULE__{players: players}, player_sign) do
+    with {:ok, new_players} <- JoinedPlayers.remove_player(players, player_sign) do
+      {:ok, %__MODULE__{current | players: new_players}}
+    end
+  end
+
   def playing_now(%__MODULE__{playing_now: playing_now}), do: playing_now
 end
