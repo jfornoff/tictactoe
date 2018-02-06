@@ -3,7 +3,7 @@ defmodule TictactoeWeb.UserSocket do
 
   ## Channels
   # channel "room:*", TictactoeWeb.RoomChannel
-  channel("game:lobby", TictactoeWeb.GameChannel)
+  channel("game:*", TictactoeWeb.GameChannel)
 
   ## Transports
   transport(:websocket, Phoenix.Transports.WebSocket)
