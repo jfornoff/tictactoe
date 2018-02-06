@@ -28,6 +28,8 @@ defmodule TictactoeWeb.GameChannel do
 
     if GameServer.game_empty?(game_pid) do
       GameSupervisor.stop_game(game_pid)
+    else
+      broadcast!(socket, "player_left", %{})
     end
 
     shutdown_tuple

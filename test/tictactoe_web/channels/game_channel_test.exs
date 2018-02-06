@@ -36,6 +36,12 @@ defmodule TictactoeWeb.GameChannelTest do
 
       refute_receive({:DOWN, ^ref, _, _, _})
     end
+
+    test "broadcasts a message", %{x_socket: socket} do
+      leave(socket)
+
+      assert_broadcast("player_left", %{})
+    end
   end
 
   describe "the first player joining" do
