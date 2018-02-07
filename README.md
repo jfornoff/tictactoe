@@ -7,6 +7,11 @@ Produced for a session at the excellent [Rhein-Main Elixir Meetup](https://www.m
 - Connect a Socket to `ws://localhost:4000/socket/websocket`
 - Topics recognized are `game:<name>` (e.g., `game:foo`)
 - Joining will succeed or fail based on whether there is space in the game
+- On success,
+  ```json
+  {"playing_as": "X"}
+  ```
+  will be returned.
 - Game will be started if it does not exist and stopped when the last player leaves
 
 ### Playing the game

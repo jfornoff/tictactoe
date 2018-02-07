@@ -14,7 +14,7 @@ defmodule TictactoeWeb.GameChannel do
       {:ok, player_identifier} ->
         send(self(), {:after_join, game_id})
 
-        {:ok, assign(socket, :tictactoe_sign, player_identifier)}
+        {:ok, %{playing_as: player_identifier}, assign(socket, :playing_as, player_identifier)}
 
       {:error, error} ->
         {:error, error}
@@ -22,6 +22,7 @@ defmodule TictactoeWeb.GameChannel do
   end
 
   def terminate(shutdown_tuple, %Phoenix.Socket{topic: "game:" <> game_id} = socket) do
+    Logger.info("Player #{player_sign(socket)} left from game #{game_id}")
     game_pid = find_or_start_game(game_id)
     GameServer.remove_player(game_pid, player_sign(socket))
 
@@ -82,7 +83,7 @@ defmodule TictactoeWeb.GameChannel do
     {:noreply, socket}
   end
 
-  defp player_sign(socket), do: socket.assigns[:tictactoe_sign]
+  defp player_sign(socket), do: socket.assigns[:playing_as]
 
   defp find_or_start_game(game_id) do
     game_id
