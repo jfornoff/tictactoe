@@ -66,9 +66,7 @@ defmodule TictactoeWeb.GameChannel do
   end
 
   def handle_info({:after_join, game_id}, socket) do
-    game_pid =
-      game_id
-      |> find_or_start_game()
+    game_pid = find_or_start_game(game_id)
 
     if GameServer.game_ready_to_start?(game_pid) do
       broadcast!(socket, "game_start", %{
