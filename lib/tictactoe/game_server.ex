@@ -1,6 +1,6 @@
 defmodule Tictactoe.GameServer do
   use GenServer
-  alias Tictactoe.Game
+  alias Tictactoe.{Game, GameSupervisor}
 
   def start_link do
     GenServer.start_link(__MODULE__, Game.State.initial())
@@ -29,6 +29,15 @@ defmodule Tictactoe.GameServer do
     game
     |> players()
     |> Game.State.JoinedPlayers.empty?()
+  end
+
+  def stop_if_empty(game) do
+    if game_empty?(game) do
+      GameSupervisor.stop_game(game)
+      :stopped
+    else
+      :not_stopped
+    end
   end
 
   def game_ready_to_start?(game) do

@@ -11,6 +11,15 @@ defmodule Tictactoe.GameSupervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
+  def find_or_start_game(game_id) do
+    game_id
+    |> start_game
+    |> case do
+      {:ok, pid} -> pid
+      {:error, {:already_started, pid}} -> pid
+    end
+  end
+
   def start_game(game_name) do
     spec = Supervisor.Spec.worker(GameServer, [game_name])
     DynamicSupervisor.start_child(__MODULE__, spec)

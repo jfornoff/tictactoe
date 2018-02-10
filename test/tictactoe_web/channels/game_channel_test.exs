@@ -2,9 +2,9 @@ defmodule TictactoeWeb.GameChannelTest do
   use TictactoeWeb.ChannelCase
 
   alias Tictactoe.{GameServer, GameSupervisor}
-  alias TictactoeWeb.GameChannel
+  alias TictactoeWeb.{GameChannel, PresenceTracker}
 
-  setup :start_supervisor
+  setup [:start_supervisor, :start_presence_tracker]
 
   describe "a half-full Tictactoe game" do
     test "rejects play moves" do
@@ -177,6 +177,11 @@ defmodule TictactoeWeb.GameChannelTest do
 
   defp start_supervisor(context) do
     GameSupervisor.start_link()
+    context
+  end
+
+  defp start_presence_tracker(context) do
+    PresenceTracker.start_link()
     context
   end
 end

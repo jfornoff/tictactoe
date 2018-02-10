@@ -1,14 +1,13 @@
 defmodule TictactoeWeb.GameChannel do
   use TictactoeWeb, :channel
 
-  require Logger
-
   alias Tictactoe.{GameSupervisor, GameServer}
+  alias TictactoeWeb.{Endpoint, PresenceTracker}
   alias TictactoeWeb.View.{BoardView, OutcomeView}
 
   def join("game:" <> game_id, _payload, socket) do
     game_id
-    |> find_or_start_game()
+    |> GameSupervisor.find_or_start_game()
     |> GameServer.add_player()
     |> case do
       {:ok, player_identifier} ->
@@ -21,22 +20,8 @@ defmodule TictactoeWeb.GameChannel do
     end
   end
 
-  def terminate(shutdown_tuple, %Phoenix.Socket{topic: "game:" <> game_id} = socket) do
-    Logger.info("Player #{player_sign(socket)} left from game #{game_id}")
-    game_pid = find_or_start_game(game_id)
-    GameServer.remove_player(game_pid, player_sign(socket))
-
-    if GameServer.game_empty?(game_pid) do
-      GameSupervisor.stop_game(game_pid)
-    else
-      broadcast!(socket, "player_left", %{})
-    end
-
-    shutdown_tuple
-  end
-
   def handle_in("play", %{"x" => x, "y" => y}, %{topic: "game:" <> game_id} = socket) do
-    game_pid = find_or_start_game(game_id)
+    game_pid = GameSupervisor.find_or_start_game(game_id)
 
     response =
       with :ok <- GameServer.play(game_pid, player_sign(socket), [x, y]) do
@@ -66,7 +51,20 @@ defmodule TictactoeWeb.GameChannel do
   end
 
   def handle_info({:after_join, game_id}, socket) do
-    game_pid = find_or_start_game(game_id)
+    start_game_if_necessary(game_id, socket)
+    track_player_presence(socket)
+
+    {:noreply, socket}
+  end
+
+  def broadcast_left_player(game_topic) do
+    Endpoint.broadcast(game_topic, "player_left", %{})
+  end
+
+  defp player_sign(socket), do: socket.assigns[:playing_as]
+
+  defp start_game_if_necessary(game_id, socket) do
+    game_pid = GameSupervisor.find_or_start_game(game_id)
 
     if GameServer.game_ready_to_start?(game_pid) do
       broadcast!(socket, "game_start", %{
@@ -77,20 +75,10 @@ defmodule TictactoeWeb.GameChannel do
           |> BoardView.encode_board()
       })
     end
-
-    {:noreply, socket}
   end
 
-  defp player_sign(socket), do: socket.assigns[:playing_as]
-
-  defp find_or_start_game(game_id) do
-    game_id
-    |> String.to_atom()
-    |> GameSupervisor.start_game()
-    |> case do
-      {:ok, pid} -> pid
-      {:error, {:already_started, pid}} -> pid
-    end
+  defp track_player_presence(socket) do
+    {:ok, _} = PresenceTracker.track_player(socket, player_sign(socket))
   end
 
   defp error_message(error_identifier) do

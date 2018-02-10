@@ -11,11 +11,8 @@ defmodule Tictactoe.Application do
     children =
       game_supervisor() ++
         [
-          # Start the endpoint when the application starts
           supervisor(TictactoeWeb.Endpoint, [])
-          # Start your own worker by calling: Tictactoe.Worker.start_link(arg1, arg2, arg3)
-          # worker(Tictactoe.Worker, [arg1, arg2, arg3]),
-        ]
+        ] ++ presence_tracker()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -35,6 +32,14 @@ defmodule Tictactoe.Application do
       []
     else
       [supervisor(Tictactoe.GameSupervisor, [])]
+    end
+  end
+
+  defp presence_tracker() do
+    if @environment == :test do
+      []
+    else
+      [supervisor(TictactoeWeb.PresenceTracker, [])]
     end
   end
 end
