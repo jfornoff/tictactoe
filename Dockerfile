@@ -27,4 +27,4 @@ RUN apk update && apk add bash openssl
 
 COPY --from=buildstep /app/_build/prod/rel/tictactoe/ /app
 
-CMD /app/bin/tictactoe foreground
+CMD ["/app/bin/tictactoe", "foreground"]
